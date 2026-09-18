@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>实习生十项核心能力 · 使用指南</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3f56;
+      --text: #e8eef4;
+      --muted: #8ba3bc;
+      --accent: #3b9eff;
+      --accent2: #5eead4;
+      --warn: #fbbf24;
+      --layer1: #6366f1;
+      --layer2: #8b5cf6;
+      --layer3: #06b6d4;
+      --layer4: #10b981;
+      --radius: 12px;
+      --shadow: 0 8px 32px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(59,158,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,158,255,.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header .tag {
+      display: inline-block;
+      font-size: .75rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      border: 1px solid rgba(94,234,212,.35);
+      padding: .25rem .75rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.25rem);
+      font-weight: 700;
+      margin-bottom: .5rem;
+      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: .95rem;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      justify-content: center;
+      margin: 2rem 0 1.5rem;
+    }
+
+    .toolbar input {
+      flex: 1;
+      min-width: 200px;
+      max-width: 360px;
+      padding: .65rem 1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .9rem;
+    }
+
+    .toolbar input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59,158,255,.2);
+    }
+
+    .filter-btn {
+      padding: .55rem 1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .85rem;
+      transition: all .2s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(59,158,255,.12);
+    }
+
+    /* Pyramid */
+    .pyramid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .pyramid-row {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .pyramid-chip {
+      padding: .45rem .85rem;
+      border-radius: 8px;
+      font-size: .8rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    .pyramid-chip:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+    .layer-1 .pyramid-chip { background: rgba(99,102,241,.25); border-color: var(--layer1); color: #c7d2fe; }
+    .layer-2 .pyramid-chip { background: rgba(139,92,246,.25); border-color: var(--layer2); color: #ddd6fe; }
+    .layer-3 .pyramid-chip { background: rgba(6,182,212,.2); border-color: var(--layer3); color: #a5f3fc; }
+    .layer-4 .pyramid-chip { background: rgba(16,185,129,.2); border-color: var(--layer4); color: #a7f3d0; }
+
+    .layer-label {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-bottom: .25rem;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* Cards grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .card:hover {
+      border-color: rgba(59,158,255,.4);
+      box-shadow: var(--shadow);
+    }
+
+    .card.hidden { display: none; }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      gap: .75rem;
+      margin-bottom: .75rem;
+    }
+
+    .card-num {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: .85rem;
+      flex-shrink: 0;
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .card .layer-badge {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-top: .2rem;
+    }
+
+    .card .core {
+      font-size: .88rem;
+      color: var(--accent2);
+      margin-bottom: .75rem;
+      font-weight: 500;
+    }
+
+    .card ul, .card ol {
+      margin-left: 1.1rem;
+      font-size: .86rem;
+      color: #b8c9dc;
+    }
+
+    .card li { margin-bottom: .35rem; }
+
+    .card .tip {
+      margin-top: .75rem;
+      padding: .65rem .85rem;
+      background: var(--surface2);
+      border-radius: 8px;
+      font-size: .82rem;
+      border-left: 3px solid var(--accent);
+    }
+
+    .card .tip strong { color: var(--warn); }
+
+    /* Table section */
+    .section {
+      margin-top: 2.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .section h2 {
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
+
+    th, td {
+      padding: .65rem .85rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    td:first-child { color: var(--muted); white-space: nowrap; }
+
+    /* Checklist */
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: .75rem;
+      margin-top: 1rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: .6rem;
+      padding: .65rem;
+      background: var(--surface2);
+      border-radius: 8px;
+      font-size: .85rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .check-item input { margin-top: .2rem; accent-color: var(--accent); }
+    .check-item.done { opacity: .55; text-decoration: line-through; }
+
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: .8rem;
+      background: rgba(0,0,0,.25);
+      padding: .15rem .4rem;
+      border-radius: 4px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="wrap">
+    <header>
+      <div class="tag">E电能源互联网 · 行政部 · 2026.8.28</div>
+      <h1>实习生十项核心能力 · 使用指南</h1>
+      <p class="subtitle">从校园到职场——认知层 → 思维层 → 方法层 → 成长层。点击金字塔标签可快速定位，搜索关键词可过滤卡片。</p>
+    </header>
+
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="搜索能力、话术、场景…" aria-label="搜索" />
+      <button class="filter-btn active" data-layer="all">全部</button>
+      <button class="filter-btn" data-layer="1">认知层</button>
+      <button class="filter-btn" data-layer="2">思维层</button>
+      <button class="filter-btn" data-layer="3">方法层</button>
+      <button class="filter-btn" data-layer="4">成长层</button>
+    </div>
+
+    <div class="pyramid" id="pyramid"></div>
+
+    <div class="grid" id="cards"></div>
+
+    <section class="section">
+      <h2>📊 校园思维 vs 职场思维</h2>
+      <table>
+        <thead>
+          <tr><th>维度</th><th>校园思维</th><th>职场思维</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>评价标准</td><td>分数、排名，个人独立表现</td><td>工作结果、团队价值贡献</td></tr>
+          <tr><td>学习路径</td><td>老师安排，有明确大纲</td><td>无现成大纲，自主找资源定路径</td></tr>
+          <tr><td>工作协作</td><td>大多独立完成</td><td>大量跨部门协作，沟通决定效率</td></tr>
+          <tr><td>反馈节奏</td><td>期末集中反馈</td><td>即时持续反馈，快速调整</td></tr>
+          <tr><td>容错程度</td><td>高，可补考重修</td><td>失误影响项目/客户/营收，成本高</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>✅ 每日下班四问 · 思维自检</h2>
+      <p style="font-size:.88rem;color:var(--muted);margin-bottom:.5rem">勾选完成项，数据保存在本浏览器本地。</p>
+      <div class="checklist" id="daily-check"></div>
+    </section>
+
+    <section class="section">
+      <h2>📅 21 天刻意练习计划</h2>
+      <table>
+        <thead>
+          <tr><th>阶段</th><th>天数</th><th>重点练习</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>意识期</td><td>1–7 天</td><td>闭环思维：接任务确认、过程同步、结果反馈</td></tr>
+          <tr><td>练习期</td><td>8–14 天</td><td>结论先行：30 秒说清核心结论</td></tr>
+          <tr><td>固化期</td><td>15–21 天</td><td>四项思维同步：闭环 + 结论 + 带方案提问 + GRAI 复盘</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      来源：《从校园到职场——实习生成长指南》· 吕思伟 · 行动是最好的学习
+    </footer>
+  </div>
+
+  <script>
+    const CAPABILITIES = [
+      {
+        id: 1, layer: 1, layerName: "认知层",
+        title: "职场认知转变",
+        core: "从「等分数」到「交结果」——认清评价模式、协作方式与容错成本",
+        points: [
+          "破除等靠要：主动询问可承担的工作",
+          "破除完美主义：先交 80 分再迭代",
+          "破除怕犯错：实习期试错成本最低",
+          "破除孤岛思维：关注上下游，思考产出给谁用"
+        ],
+        tip: "五维自检：主动性 · 沟通力 · 责任心 · 学习力 · 协作力"
+      },
+      {
+        id: 2, layer: 2, layerName: "思维层",
+        title: "闭环思维",
+        core: "凡事有交代、件件有着落、事事有回音",
+        points: [
+          "接收确认 → 过程同步 → 结果反馈 → 遗留跟进",
+          "接任务：复述理解 + 确认截止时间",
+          "遇困难：及时同步卡点，不要闷头扛",
+          "交付后：主动确认是否满足预期"
+        ],
+        tip: "职场第一基础能力，建立信任、降低沟通成本"
+      },
+      {
+        id: 3, layer: 2, layerName: "思维层",
+        title: "结论先行",
+        core: "30 秒输出核心结论，禁止先讲过程故事",
+        points: [
+          "结构：一句话结论 → ≤3 条论据 → 数据支撑 → 下一步建议",
+          "练习：汇报前想「如果只有 30 秒，最想传递哪一句？」",
+          "追问再展开细节，不要一次性信息轰炸"
+        ],
+        tip: "上级时间有限，先给答案再解释"
+      },
+      {
+        id: 4, layer: 2, layerName: "思维层",
+        title: "带方案提问",
+        core: "展示思考过程，而不是把问题直接抛给上级",
+        points: [
+          "① 描述问题 ② 展示分析 ③ 给出备选方案 ④ 请求指导",
+          "提问附带自己的初步想法和倾向",
+          "让上级做选择题，而不是填空题"
+        ],
+        tip: "好问题 = 问题 + 你的思考 + 可选方案"
+      },
+      {
+        id: 5, layer: 2, layerName: "思维层",
+        title: "GRAI 复盘",
+        core: "每周五 30 分钟，复盘本周最重要 3 件事",
+        points: [
+          "G Goal：当初预期目标、可衡量标准",
+          "R Result：实际结果与目标差距",
+          "A Analysis：达成/未达成的原因",
+          "I Insight：经验总结 + 下次改进行动"
+        ],
+        tip: "复盘不是写检讨，是提炼可复用的洞察"
+      },
+      {
+        id: 6, layer: 3, layerName: "方法层",
+        title: "优先级排序（艾森豪威尔）",
+        core: "紧急 ≠ 重要；目标不是做完所有事，而是做高价值事",
+        points: [
+          "重要且紧急 → 立刻做；长期用规划减少「救火」",
+          "重要不紧急 → 主动预留时间（成长关键）",
+          "紧急不重要 → 拒绝/授权，不让别人紧急占资源",
+          "不重要不紧急 → 严格限制"
+        ],
+        tip: "步骤：列待办 → 判象限 → 定行动方案"
+      },
+      {
+        id: 7, layer: 3, layerName: "方法层",
+        title: "节点意识",
+        core: "节点 = 结果导向检查点，只有达成/未达成两种状态",
+        points: [
+          "避免：「尽快、马上好」等模糊承诺",
+          "设定含时间、交付物、验收标准的里程碑",
+          "口头沟通后文字留痕",
+          "个人延期 = 整条工作链延误"
+        ],
+        tip: "对抗拖延、预警风险、消除信息黑箱"
+      },
+      {
+        id: 8, layer: 3, layerName: "方法层",
+        title: "沟通留痕",
+        core: "口头定方向，书面定事实——让任务、责任、时间有据可依",
+        points: [
+          "会议结束：群内发摘要（决议/负责人/截止时间）",
+          "需求变更：口头调整后立刻书面确认",
+          "跨部门协作：关键约定书面同步",
+          "敏感信息：费用/合同/承诺必须书面，不信口头"
+        ],
+        tip: "留痕目的不是甩锅，是降低协作摩擦"
+      },
+      {
+        id: 9, layer: 3, layerName: "方法层",
+        title: "主动意识",
+        core: "比岗位描述多想一步：合格 → 优秀 → 卓越",
+        points: [
+          "合格：被动执行，交办任务不出错",
+          "优秀：完成任务 + 附带分析建议",
+          "卓越：发现团队忽略的问题并推动解决",
+          "习惯：每日自省、关注灰色地带、主动寻求反馈"
+        ],
+        tip: "主动预判节点、过程反馈卡点、职责内补位"
+      },
+      {
+        id: 10, layer: 4, layerName: "成长层",
+        title: "抗压与自学",
+        core: "决定职业发展天花板的两项长期修炼",
+        points: [
+          "抗压：区分良性/恶性压力；任务过载→拆解+四象限",
+          "被批评：先暂停深呼吸，区分「对事反馈」与自我否定",
+          "自学：先搜后问，内部知识库优先，搭建个人知识库",
+          "721 法则：70% 实践 + 20% 向人学 + 10% 系统学"
+        ],
+        tip: "成长型思维：挫折 = 学习机会；写成就日志对抗自我怀疑"
+      }
+    ];
+
+    const DAILY_CHECKS = [
+      "今天接的任务，是否做了接收确认？",
+      "遇到困难是否及时同步，而非闷头扛？",
+      "汇报/沟通是否结论先行？",
+      "提问是否附带了自己的思考和方案？",
+      "今日待办是否按重要/紧急做了排序？",
+      "关键约定是否有书面留痕？",
+      "是否比交办要求多想了一步？"
+    ];
+
+    const layerColors = { 1: "var(--layer1)", 2: "var(--layer2)", 3: "var(--layer3)", 4: "var(--layer4)" };
+
+    function renderPyramid() {
+      const layers = [
+        { n: 1, name: "认知层", items: CAPABILITIES.filter(c => c.layer === 1) },
+        { n: 2, name: "思维层", items: CAPABILITIES.filter(c => c.layer === 2) },
+        { n: 3, name: "方法层", items: CAPABILITIES.filter(c => c.layer === 3) },
+        { n: 4, name: "成长层", items: CAPABILITIES.filter(c => c.layer === 4) },
+      ];
+      const el = document.getElementById("pyramid");
+      el.innerHTML = layers.map(l => `
+        <div class="layer-label">第 ${l.n} 层 · ${l.name}</div>
+        <div class="pyramid-row layer-${l.n}">
+          ${l.items.map(c => `<span class="pyramid-chip" data-id="${c.id}">${c.title}</span>`).join("")}
+        </div>
+      `).join("");
+      el.querySelectorAll(".pyramid-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          document.getElementById("card-" + chip.dataset.id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+          document.getElementById("card-" + chip.dataset.id)?.classList.add("highlight");
+          setTimeout(() => document.getElementById("card-" + chip.dataset.id)?.classList.remove("highlight"), 1500);
+        });
+      });
+    }
+
+    function renderCards(filter = "all", query = "") {
+      const q = query.trim().toLowerCase();
+      const grid = document.getElementById("cards");
+      grid.innerHTML = CAPABILITIES.map(c => {
+        const text = [c.title, c.core, c.tip, ...c.points, c.layerName].join(" ").toLowerCase();
+        const matchLayer = filter === "all" || String(c.layer) === filter;
+        const matchQuery = !q || text.includes(q);
+        const hidden = !(matchLayer && matchQuery);
+        return `
+          <article class="card${hidden ? " hidden" : ""}" id="card-${c.id}" data-layer="${c.layer}">
+            <div class="card-head">
+              <div class="card-num" style="background:${layerColors[c.layer]}33;color:${layerColors[c.layer]}">${c.id}</div>
+              <div>
+                <h2>${c.title}</h2>
+                <div class="layer-badge">${c.layerName}</div>
+              </div>
+            </div>
+            <p class="core">${c.core}</p>
+            <ul>${c.points.map(p => `<li>${p}</li>`).join("")}</ul>
+            <div class="tip"><strong>要点：</strong>${c.tip}</div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderChecklist() {
+      const saved = JSON.parse(localStorage.getItem("intern-daily-check") || "{}");
+      const el = document.getElementById("daily-check");
+      el.innerHTML = DAILY_CHECKS.map((text, i) => {
+        const checked = saved[i] ? "checked" : "";
+        const done = saved[i] ? "done" : "";
+        return `<label class="check-item ${done}"><input type="checkbox" data-i="${i}" ${checked}/>${text}</label>`;
+      }).join("");
+      el.querySelectorAll("input").forEach(inp => {
+        inp.addEventListener("change", () => {
+          const state = JSON.parse(localStorage.getItem("intern-daily-check") || "{}");
+          state[inp.dataset.i] = inp.checked;
+          localStorage.setItem("intern-daily-check", JSON.stringify(state));
+          inp.closest(".check-item").classList.toggle("done", inp.checked);
+        });
+      });
+    }
+
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderCards(btn.dataset.layer, document.getElementById("search").value);
+      });
+    });
+
+    document.getElementById("search").addEventListener("input", e => {
+      const active = document.querySelector(".filter-btn.active")?.dataset.layer || "all";
+      renderCards(active, e.target.value);
+    });
+
+    renderPyramid();
+    renderCards();
+    renderChecklist();
+  </script>
+  <style>
+    .card.highlight { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,158,255,.25); }
+  </style>
+</body>
+</html>

@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>优先级排序 · 艾森豪威尔四象限</title>
+  <style>
+    :root {
+      --bg: #0c0f14;
+      --surface: #151b24;
+      --surface2: #1e2736;
+      --border: #2a3648;
+      --text: #eef2f7;
+      --muted: #8b9cb0;
+      --q1: #ef4444;
+      --q1-bg: rgba(239,68,68,.12);
+      --q2: #22c55e;
+      --q2-bg: rgba(34,197,94,.1);
+      --q3: #f59e0b;
+      --q3-bg: rgba(245,158,11,.1);
+      --q4: #64748b;
+      --q4-bg: rgba(100,116,139,.15);
+      --accent: #38bdf8;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.55;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    header { margin-bottom: 1.5rem; }
+
+    h1 {
+      font-size: clamp(1.4rem, 3.5vw, 1.85rem);
+      font-weight: 700;
+      margin-bottom: .35rem;
+    }
+
+    .sub { color: var(--muted); font-size: .9rem; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+    }
+
+    .panel h2 {
+      font-size: .95rem;
+      font-weight: 600;
+      margin-bottom: .85rem;
+      color: var(--muted);
+    }
+
+    .add-form textarea {
+      width: 100%;
+      min-height: 72px;
+      padding: .65rem .8rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .9rem;
+      resize: vertical;
+    }
+
+    .add-form textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .toggle-row {
+      display: flex;
+      gap: .5rem;
+      margin: .75rem 0;
+      flex-wrap: wrap;
+    }
+
+    .toggle {
+      flex: 1;
+      min-width: 120px;
+      padding: .5rem .6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: .78rem;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+    }
+
+    .toggle.on-yes { border-color: var(--q2); color: #86efac; background: var(--q2-bg); }
+    .toggle.on-no { border-color: var(--q4); color: #cbd5e1; }
+
+    .toggle.imp.on-yes { border-color: var(--q1); color: #fca5a5; background: var(--q1-bg); }
+
+    label.row-label {
+      display: block;
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: .35rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: .65rem;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #0ea5e9, #6366f1); color: #fff; }
+    .btn-primary:hover { opacity: .9; }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      margin-top: .5rem;
+    }
+
+    .hint-box {
+      margin-top: 1rem;
+      padding: .75rem;
+      background: var(--surface2);
+      border-radius: 10px;
+      font-size: .8rem;
+      color: var(--muted);
+      border-left: 3px solid var(--accent);
+    }
+
+    .hint-box strong { color: var(--text); display: block; margin-bottom: .25rem; }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+      min-height: 520px;
+    }
+
+    @media (max-width: 640px) {
+      .matrix { grid-template-columns: 1fr; min-height: auto; }
+    }
+
+    .quadrant {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 240px;
+      overflow: hidden;
+      transition: box-shadow .2s, border-color .2s;
+    }
+
+    .quadrant.drag-over {
+      box-shadow: 0 0 0 2px var(--accent);
+      border-color: var(--accent);
+    }
+
+    .q-head {
+      padding: .65rem .85rem;
+      font-size: .82rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .q-head .badge {
+      font-size: .7rem;
+      padding: .15rem .45rem;
+      border-radius: 6px;
+      background: rgba(0,0,0,.2);
+      font-weight: 500;
+    }
+
+    .q-body {
+      flex: 1;
+      padding: .5rem;
+      overflow-y: auto;
+      max-height: 280px;
+    }
+
+    .q1 { background: var(--q1-bg); }
+    .q1 .q-head { background: rgba(239,68,68,.25); color: #fecaca; }
+    .q2 { background: var(--q2-bg); }
+    .q2 .q-head { background: rgba(34,197,94,.2); color: #bbf7d0; }
+    .q3 { background: var(--q3-bg); }
+    .q3 .q-head { background: rgba(245,158,11,.2); color: #fde68a; }
+    .q4 { background: var(--q4-bg); }
+    .q4 .q-head { background: rgba(100,116,139,.25); color: #cbd5e1; }
+
+    .task {
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 8px;
+      padding: .55rem .65rem;
+      margin-bottom: .4rem;
+      font-size: .84rem;
+      cursor: grab;
+      display: flex;
+      align-items: flex-start;
+      gap: .45rem;
+      user-select: none;
+    }
+
+    .task:active { cursor: grabbing; }
+    .task.done { opacity: .45; text-decoration: line-through; }
+
+    .task input[type="checkbox"] {
+      margin-top: .15rem;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .task-text { flex: 1; word-break: break-word; }
+
+    .task-actions {
+      display: flex;
+      gap: .2rem;
+      flex-shrink: 0;
+    }
+
+    .task-actions button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: .1rem .25rem;
+      font-size: .75rem;
+      border-radius: 4px;
+    }
+
+    .task-actions button:hover { color: var(--text); background: rgba(255,255,255,.08); }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: .78rem;
+      padding: 1.5rem .5rem;
+      opacity: .7;
+    }
+
+    .stats {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .5rem .85rem;
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    .stat b { color: var(--text); font-size: 1rem; margin-right: .25rem; }
+
+    .guide {
+      margin-top: 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: .65rem;
+    }
+
+    .guide-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .75rem;
+      font-size: .8rem;
+    }
+
+    .guide-item h3 { font-size: .85rem; margin-bottom: .35rem; }
+    .guide-item p { color: var(--muted); font-size: .78rem; }
+
+    .inbox {
+      margin-top: 1rem;
+    }
+
+    .inbox-list {
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: .65rem 1.2rem;
+      border-radius: 999px;
+      font-size: .85rem;
+      opacity: 0;
+      transition: all .3s;
+      z-index: 99;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .data-panel {
+      margin-top: 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+    }
+
+    .data-panel h2 {
+      font-size: .95rem;
+      font-weight: 600;
+      margin-bottom: .5rem;
+    }
+
+    .data-panel .desc {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: .85rem;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+      margin-bottom: .75rem;
+    }
+
+    .btn-sm {
+      padding: .45rem .75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .78rem;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+
+    .btn-sm:hover { border-color: var(--accent); }
+    .btn-sm.primary { background: rgba(56,189,248,.15); border-color: var(--accent); }
+
+    .data-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: .75rem;
+    }
+
+    .data-stats span {
+      background: var(--surface2);
+      padding: .25rem .55rem;
+      border-radius: 6px;
+    }
+
+    .snapshot-list {
+      max-height: 140px;
+      overflow-y: auto;
+      font-size: .78rem;
+    }
+
+    .snapshot-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .4rem .5rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+    }
+
+    .snapshot-item:last-child { border-bottom: none; }
+
+    .snapshot-item button {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: .75rem;
+      font-family: inherit;
+    }
+
+    .import-area {
+      margin-top: .65rem;
+    }
+
+    .import-area input[type="file"] {
+      font-size: .78rem;
+      color: var(--muted);
+      width: 100%;
+    }
+
+    label.check-inline {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .78rem;
+      color: var(--muted);
+      margin: .5rem 0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>优先级排序 · 艾森豪威尔四象限</h1>
+      <p class="sub">紧急 ≠ 重要。目标不是做完所有事，而是优先做高价值的事。</p>
+    </header>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="layout">
+      <aside class="panel">
+        <h2>➕ 添加待办</h2>
+        <form class="add-form" id="add-form">
+          <textarea id="task-input" placeholder="输入任务，例如：完成周报、回复客户邮件…" required></textarea>
+
+          <label class="row-label">是否重要？（对目标/成长/核心产出有实质影响）</label>
+          <div class="toggle-row" id="important-toggle">
+            <button type="button" class="toggle imp" data-val="true">重要</button>
+            <button type="button" class="toggle" data-val="false">不重要</button>
+          </div>
+
+          <label class="row-label">是否紧急？（有明确 deadline 或他人等待）</label>
+          <div class="toggle-row" id="urgent-toggle">
+            <button type="button" class="toggle" data-val="true">紧急</button>
+            <button type="button" class="toggle" data-val="false">不紧急</button>
+          </div>
+
+          <button type="submit" class="btn btn-primary">加入对应象限</button>
+          <button type="button" class="btn btn-ghost" id="clear-done">清除已完成</button>
+          <button type="button" class="btn btn-ghost" id="reset-all">清空全部</button>
+        </form>
+
+        <div class="hint-box" id="auto-hint">
+          <strong>自动归类建议</strong>
+          选择「重要 / 紧急」后，系统会自动放入对应象限。也可拖拽任务调整。
+        </div>
+
+        <div class="inbox panel" style="margin-top:1rem;padding:.85rem;background:var(--surface2);border:none;">
+          <h2 style="margin-bottom:.5rem;">📥 待分类收件箱</h2>
+          <p style="font-size:.75rem;color:var(--muted);margin-bottom:.5rem;">不确定时先丢进收件箱，稍后拖拽到象限</p>
+          <button type="button" class="btn btn-ghost" id="to-inbox" style="margin:0 0 .5rem;">当前任务 → 收件箱</button>
+          <div class="inbox-list" id="inbox" data-q="inbox"></div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="matrix" id="matrix">
+          <div class="quadrant q1" data-q="q1">
+            <div class="q-head">① 重要且紧急 <span class="badge">立刻做</span></div>
+            <div class="q-body" id="q1-body"></div>
+          </div>
+          <div class="quadrant q2" data-q="q2">
+            <div class="q-head">② 重要不紧急 <span class="badge">主动规划</span></div>
+            <div class="q-body" id="q2-body"></div>
+          </div>
+          <div class="quadrant q3" data-q="q3">
+            <div class="q-head">③ 紧急不重要 <span class="badge">拒绝/授权</span></div>
+            <div class="q-body" id="q3-body"></div>
+          </div>
+          <div class="quadrant q4" data-q="q4">
+            <div class="q-head">④ 不重要不紧急 <span class="badge">严格限制</span></div>
+            <div class="q-body" id="q4-body"></div>
+          </div>
+        </div>
+
+        <div class="guide">
+          <div class="guide-item q1" style="border-color:rgba(239,68,68,.3)">
+            <h3>象限 ① 立刻处理</h3>
+            <p>危机、硬 deadline、客户投诉。长期要通过规划减少此类「救火」。</p>
+          </div>
+          <div class="guide-item q2" style="border-color:rgba(34,197,94,.3)">
+            <h3>象限 ② 成长关键</h3>
+            <p>学习、规划、关系维护。主动预留时间，这是拉开差距的核心。</p>
+          </div>
+          <div class="guide-item q3" style="border-color:rgba(245,158,11,.3)">
+            <h3>象限 ③ 伪紧急</h3>
+            <p>别人的紧急占你的时间。尽量拒绝、委托，保护自己的重要事项。</p>
+          </div>
+          <div class="guide-item">
+            <h3>象限 ④ 时间黑洞</h3>
+            <p>刷手机、无效会议。严格限制，能不做就不做。</p>
+          </div>
+        </div>
+
+        <section class="data-panel">
+          <h2>📦 数据留存 · 便于后续分析</h2>
+          <p class="desc">自动记录操作日志与每日快照；支持导出 JSON / CSV 到本地文件，重启电脑不丢。建议每周导出一次备份。</p>
+          <div class="data-stats" id="data-stats"></div>
+          <div class="btn-row">
+            <button type="button" class="btn-sm primary" id="btn-snapshot">📸 手动快照</button>
+            <button type="button" class="btn-sm" id="btn-export-json">导出 JSON（完整）</button>
+            <button type="button" class="btn-sm" id="btn-export-csv-tasks">导出 CSV（任务表）</button>
+            <button type="button" class="btn-sm" id="btn-export-csv-events">导出 CSV（操作日志）</button>
+            <button type="button" class="btn-sm" id="btn-export-all">导出分析包（JSON+CSV）</button>
+          </div>
+          <label class="check-inline">
+            <input type="checkbox" id="auto-daily" checked /> 每天首次打开自动保存快照
+          </label>
+          <h2 style="margin-top:.85rem;font-size:.85rem;color:var(--muted);">历史快照</h2>
+          <div class="snapshot-list" id="snapshot-list"></div>
+          <div class="import-area">
+            <h2 style="font-size:.85rem;color:var(--muted);margin:.75rem 0 .4rem;">导入备份</h2>
+            <input type="file" id="import-file" accept=".json,application/json" />
+            <label class="check-inline">
+              <input type="checkbox" id="import-merge" /> 合并导入（不覆盖已有任务，仅追加日志与快照）
+            </label>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORAGE_KEY = "eisenhower-tasks-v2";
+    const EVENTS_KEY = "eisenhower-events-v1";
+    const SNAPSHOTS_KEY = "eisenhower-snapshots-v1";
+    const META_KEY = "eisenhower-meta-v1";
+    const EXPORT_VERSION = "1.0";
+
+    let state = {
+      important: null,
+      urgent: null,
+      tasks: []
+    };
+    let events = [];
+    let snapshots = [];
+    let meta = { autoDaily: true, lastDailySnapshot: null };
+
+    const QUADRANTS = {
+      q1: { important: true, urgent: true, label: "重要且紧急" },
+      q2: { important: true, urgent: false, label: "重要不紧急" },
+      q3: { important: false, urgent: true, label: "紧急不重要" },
+      q4: { important: false, urgent: false, label: "不重要不紧急" },
+      inbox: { label: "待分类" }
+    };
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function quadrantFromFlags(important, urgent) {
+      if (important && urgent) return "q1";
+      if (important && !urgent) return "q2";
+      if (!important && urgent) return "q3";
+      return "q4";
+    }
+
+    function quadrantMeta(q) {
+      const m = QUADRANTS[q];
+      if (!m || q === "inbox") return { important: null, urgent: null, label: m?.label || q };
+      return { important: m.important, urgent: m.urgent, label: m.label };
+    }
+
+    function load() {
+      try {
+        events = JSON.parse(localStorage.getItem(EVENTS_KEY) || "[]");
+      } catch (_) { events = []; }
+      try {
+        snapshots = JSON.parse(localStorage.getItem(SNAPSHOTS_KEY) || "[]");
+      } catch (_) { snapshots = []; }
+      try {
+        meta = { autoDaily: true, lastDailySnapshot: null, ...JSON.parse(localStorage.getItem(META_KEY) || "{}") };
+      } catch (_) {}
+      document.getElementById("auto-daily").checked = meta.autoDaily !== false;
+
+      try {
+        let raw = localStorage.getItem(STORAGE_KEY);
+        const fromV1 = !raw;
+        if (!raw) {
+          raw = localStorage.getItem("eisenhower-tasks-v1");
+        }
+        if (raw) state.tasks = JSON.parse(raw);
+        state.tasks = state.tasks.map(t => ({
+          ...t,
+          updated: t.updated || t.created || Date.now(),
+          completedAt: t.completedAt || null,
+          important: t.important ?? quadrantMeta(t.quadrant).important,
+          urgent: t.urgent ?? quadrantMeta(t.quadrant).urgent
+        }));
+        if (fromV1 && state.tasks.length) {
+          saveTasks();
+          logEvent("migrate", { from: "eisenhower-tasks-v1", to: STORAGE_KEY, count: state.tasks.length });
+        }
+      } catch (_) {}
+    }
+
+    function saveTasks() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tasks));
+      persistToDisk();
+    }
+
+    function saveEvents() {
+      if (events.length > 5000) events = events.slice(-4000);
+      localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+      persistToDisk();
+    }
+
+    function saveSnapshots() {
+      if (snapshots.length > 200) snapshots = snapshots.slice(-150);
+      localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(snapshots));
+      persistToDisk();
+    }
+
+    function saveMeta() {
+      localStorage.setItem(META_KEY, JSON.stringify(meta));
+      persistToDisk();
+    }
+
+    function save() {
+      saveTasks();
+    }
+
+    let persistTimer = null;
+    function persistToDisk() {
+      if (location.hostname !== "127.0.0.1") return;
+      clearTimeout(persistTimer);
+      persistTimer = setTimeout(() => {
+        fetch("/api/storage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(exportPayload())
+        }).catch(() => {});
+      }, 350);
+    }
+
+    function mergeBundle(data, replaceTasks) {
+      if (!data || typeof data !== "object") return;
+      const incomingTasks = Array.isArray(data.tasks) ? data.tasks : [];
+      const incomingEvents = Array.isArray(data.events) ? data.events : [];
+      const incomingSnapshots = Array.isArray(data.snapshots) ? data.snapshots : [];
+
+      if (replaceTasks) {
+        state.tasks = incomingTasks;
+      } else if (incomingTasks.length) {
+        const ids = new Set(state.tasks.map(t => t.id));
+        incomingTasks.forEach(t => { if (t && t.id && !ids.has(t.id)) state.tasks.push(t); });
+      }
+
+      if (incomingEvents.length) {
+        const ids = new Set(events.map(x => x.id));
+        incomingEvents.forEach(ev => { if (ev && ev.id && !ids.has(ev.id)) events.push(ev); });
+        events.sort((a, b) => a.at - b.at);
+      }
+
+      if (incomingSnapshots.length) {
+        const ids = new Set(snapshots.map(s => s.id));
+        incomingSnapshots.forEach(s => { if (s && s.id && !ids.has(s.id)) snapshots.unshift(s); });
+      }
+
+      if (data.meta && typeof data.meta === "object") {
+        meta = { ...meta, ...data.meta };
+      }
+
+      saveTasks();
+      saveEvents();
+      saveSnapshots();
+      localStorage.setItem(META_KEY, JSON.stringify(meta));
+    }
+
+    async function hydrateFromDisk() {
+      if (location.hostname !== "127.0.0.1") return false;
+      try {
+        const r = await fetch("/api/storage", { cache: "no-store" });
+        if (!r.ok) return false;
+        const disk = await r.json();
+        const hasDisk = (disk.tasks && disk.tasks.length) || (disk.events && disk.events.length) || (disk.snapshots && disk.snapshots.length);
+        if (!hasDisk) return false;
+        const localEmpty = !state.tasks.length && !events.length && !snapshots.length;
+        mergeBundle(disk, localEmpty);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function logEvent(type, payload = {}) {
+      events.push({
+        id: uid(),
+        type,
+        at: Date.now(),
+        atISO: new Date().toISOString(),
+        ...payload
+      });
+      saveEvents();
+      renderDataPanel();
+    }
+
+    function todayKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function buildSnapshot(note = "manual") {
+      const pending = state.tasks.filter(t => !t.done);
+      return {
+        id: uid(),
+        at: Date.now(),
+        atISO: new Date().toISOString(),
+        date: todayKey(),
+        note,
+        summary: {
+          total: state.tasks.length,
+          pending: pending.length,
+          done: state.tasks.filter(t => t.done).length,
+          q1: pending.filter(t => t.quadrant === "q1").length,
+          q2: pending.filter(t => t.quadrant === "q2").length,
+          q3: pending.filter(t => t.quadrant === "q3").length,
+          q4: pending.filter(t => t.quadrant === "q4").length,
+          inbox: pending.filter(t => t.quadrant === "inbox").length
+        },
+        tasks: JSON.parse(JSON.stringify(state.tasks))
+      };
+    }
+
+    function takeSnapshot(note = "manual") {
+      const snap = buildSnapshot(note);
+      snapshots.unshift(snap);
+      saveSnapshots();
+      logEvent("snapshot", { snapshotId: snap.id, note, summary: snap.summary });
+      return snap;
+    }
+
+    function maybeDailySnapshot() {
+      if (meta.autoDaily === false) return;
+      const today = todayKey();
+      if (meta.lastDailySnapshot === today) return;
+      takeSnapshot("daily_auto");
+      meta.lastDailySnapshot = today;
+      saveMeta();
+    }
+
+    function downloadFile(filename, content, mime) {
+      const blob = new Blob([content], { type: mime });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function exportPayload() {
+      return {
+        exportVersion: EXPORT_VERSION,
+        exportedAt: new Date().toISOString(),
+        app: "eisenhower-priority",
+        tasks: state.tasks,
+        events,
+        snapshots,
+        meta
+      };
+    }
+
+    function tasksToCsv() {
+      const header = "id,text,quadrant,quadrant_label,important,urgent,done,created,updated,completedAt,created_date,completed_date";
+      const rows = state.tasks.map(t => {
+        const q = quadrantMeta(t.quadrant);
+        const created = t.created ? new Date(t.created).toISOString() : "";
+        const updated = t.updated ? new Date(t.updated).toISOString() : "";
+        const completed = t.completedAt ? new Date(t.completedAt).toISOString() : "";
+        const esc = s => `"${String(s ?? "").replace(/"/g, '""')}"`;
+        return [
+          t.id, esc(t.text), t.quadrant, esc(q.label),
+          t.important ?? q.important, t.urgent ?? q.urgent,
+          t.done ? 1 : 0, created, updated, completed,
+          created.slice(0, 10), completed.slice(0, 10)
+        ].join(",");
+      });
+      return "\uFEFF" + header + "\n" + rows.join("\n");
+    }
+
+    function eventsToCsv() {
+      const header = "id,type,at,atISO,taskId,taskText,fromQuadrant,toQuadrant,note,summary_json";
+      const rows = events.map(e => {
+        const esc = s => `"${String(s ?? "").replace(/"/g, '""')}"`;
+        return [
+          e.id, e.type, e.at, e.atISO,
+          e.taskId || "", esc(e.taskText || ""),
+          e.fromQuadrant || "", e.toQuadrant || "",
+          esc(e.note || ""),
+          esc(e.summary ? JSON.stringify(e.summary) : "")
+        ].join(",");
+      });
+      return "\uFEFF" + header + "\n" + rows.join("\n");
+    }
+
+    function fileStamp() {
+      return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    }
+
+    function renderDataPanel() {
+      document.getElementById("data-stats").innerHTML = `
+        <span>任务 ${state.tasks.length} 条</span>
+        <span>操作日志 ${events.length} 条</span>
+        <span>快照 ${snapshots.length} 个</span>
+        <span>上次日快照 ${meta.lastDailySnapshot || "无"}</span>
+      `;
+      const list = document.getElementById("snapshot-list");
+      if (!snapshots.length) {
+        list.innerHTML = '<div class="empty" style="padding:.75rem">暂无快照，点击「手动快照」或等待每日自动保存</div>';
+        return;
+      }
+      list.innerHTML = snapshots.slice(0, 20).map(s => `
+        <div class="snapshot-item">
+          <span>${s.atISO.slice(0, 16).replace("T", " ")} · ${s.note} · 待办${s.summary.pending}/完成${s.summary.done}</span>
+          <button type="button" data-dl-snap="${s.id}">导出</button>
+        </div>
+      `).join("");
+      list.querySelectorAll("[data-dl-snap]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const s = snapshots.find(x => x.id === btn.dataset.dlSnap);
+          if (s) downloadFile(`snapshot-${s.date}-${s.id.slice(-4)}.json`, JSON.stringify(s, null, 2), "application/json");
+        });
+      });
+    }
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function setupToggles(containerId, key) {
+      const row = document.getElementById(containerId);
+      row.querySelectorAll(".toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+          row.querySelectorAll(".toggle").forEach(b => {
+            b.classList.remove("on-yes", "on-no");
+          });
+          const val = btn.dataset.val === "true";
+          state[key] = val;
+          btn.classList.add(val ? "on-yes" : "on-no");
+          updateHint();
+        });
+      });
+    }
+
+    function updateHint() {
+      const el = document.getElementById("auto-hint");
+      if (state.important === null || state.urgent === null) {
+        el.innerHTML = "<strong>自动归类建议</strong>请选择「重要」和「紧急」，系统将推荐对应象限。";
+        return;
+      }
+      const q = quadrantFromFlags(state.important, state.urgent);
+      const tips = {
+        q1: "→ 象限 ①：立刻处理，完成后复盘如何减少救火",
+        q2: "→ 象限 ②：主动排进日程，这是成长区",
+        q3: "→ 象限 ③：评估能否拒绝或授权他人",
+        q4: "→ 象限 ④：尽量不做或严格限时"
+      };
+      el.innerHTML = `<strong>将归入</strong>${QUADRANTS[q].label} ${tips[q]}`;
+    }
+
+    function renderTask(task) {
+      const div = document.createElement("div");
+      div.className = "task" + (task.done ? " done" : "");
+      div.draggable = true;
+      div.dataset.id = task.id;
+      div.innerHTML = `
+        <input type="checkbox" ${task.done ? "checked" : ""} aria-label="完成" />
+        <span class="task-text">${escapeHtml(task.text)}</span>
+        <div class="task-actions">
+          <button type="button" title="删除" data-del>✕</button>
+        </div>
+      `;
+
+      div.querySelector("input").addEventListener("change", e => {
+        task.done = e.target.checked;
+        task.updated = Date.now();
+        if (task.done && !task.completedAt) task.completedAt = Date.now();
+        if (!task.done) task.completedAt = null;
+        save();
+        logEvent(task.done ? "task_done" : "task_reopen", {
+          taskId: task.id,
+          taskText: task.text,
+          quadrant: task.quadrant
+        });
+        render();
+      });
+
+      div.querySelector("[data-del]").addEventListener("click", () => {
+        logEvent("task_deleted", { taskId: task.id, taskText: task.text, quadrant: task.quadrant });
+        state.tasks = state.tasks.filter(t => t.id !== task.id);
+        save();
+        render();
+        toast("已删除");
+      });
+
+      div.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", task.id);
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      return div;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement("div");
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function renderQuadrant(qId, container) {
+      container.innerHTML = "";
+      const items = state.tasks.filter(t => t.quadrant === qId);
+      if (!items.length) {
+        container.innerHTML = '<div class="empty">拖拽任务到此处<br>或左侧添加</div>';
+        return;
+      }
+      items.forEach(t => container.appendChild(renderTask(t)));
+    }
+
+    function renderStats() {
+      const pending = state.tasks.filter(t => !t.done);
+      const q2 = pending.filter(t => t.quadrant === "q2").length;
+      const q1 = pending.filter(t => t.quadrant === "q1").length;
+      document.getElementById("stats").innerHTML = `
+        <div class="stat"><b>${pending.length}</b>待办</div>
+        <div class="stat"><b>${q1}</b>象限①（立刻）</div>
+        <div class="stat"><b>${q2}</b>象限②（成长）</div>
+        <div class="stat"><b>${state.tasks.filter(t => t.done).length}</b>已完成</div>
+      `;
+    }
+
+    function render() {
+      ["q1", "q2", "q3", "q4"].forEach(q => {
+        renderQuadrant(q, document.getElementById(q + "-body"));
+      });
+      renderQuadrant("inbox", document.getElementById("inbox"));
+      renderStats();
+    }
+
+    function setupDropZones() {
+      document.querySelectorAll(".quadrant, #inbox").forEach(zone => {
+        zone.addEventListener("dragover", e => {
+          e.preventDefault();
+          zone.classList.add("drag-over");
+        });
+        zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+        zone.addEventListener("drop", e => {
+          e.preventDefault();
+          zone.classList.remove("drag-over");
+          const id = e.dataTransfer.getData("text/plain");
+          const task = state.tasks.find(t => t.id === id);
+          if (!task) return;
+          const from = task.quadrant;
+          task.quadrant = zone.dataset.q;
+          task.updated = Date.now();
+          const qm = quadrantMeta(task.quadrant);
+          task.important = qm.important;
+          task.urgent = qm.urgent;
+          save();
+          logEvent("task_moved", {
+            taskId: task.id,
+            taskText: task.text,
+            fromQuadrant: from,
+            toQuadrant: task.quadrant
+          });
+          render();
+          toast("已移至 " + (QUADRANTS[task.quadrant]?.label || task.quadrant));
+        });
+      });
+    }
+
+    document.getElementById("add-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const text = document.getElementById("task-input").value.trim();
+      if (!text) return;
+
+      let quadrant = "inbox";
+      if (state.important !== null && state.urgent !== null) {
+        quadrant = quadrantFromFlags(state.important, state.urgent);
+      }
+
+      state.tasks.unshift({
+        id: uid(),
+        text,
+        quadrant,
+        done: false,
+        created: Date.now(),
+        updated: Date.now(),
+        completedAt: null,
+        important: state.important,
+        urgent: state.urgent
+      });
+
+      save();
+      logEvent("task_created", { taskId: state.tasks[0].id, taskText: text, quadrant });
+      document.getElementById("task-input").value = "";
+      render();
+      toast("已添加至 " + QUADRANTS[quadrant].label);
+    });
+
+    document.getElementById("to-inbox").addEventListener("click", () => {
+      const text = document.getElementById("task-input").value.trim();
+      if (!text) { toast("请先输入任务内容"); return; }
+      state.tasks.unshift({
+        id: uid(), text, quadrant: "inbox", done: false,
+        created: Date.now(), updated: Date.now(), completedAt: null,
+        important: null, urgent: null
+      });
+      logEvent("task_created", { taskId: state.tasks[0].id, taskText: text, quadrant: "inbox" });
+      document.getElementById("task-input").value = "";
+      save();
+      render();
+      toast("已加入收件箱");
+    });
+
+    document.getElementById("clear-done").addEventListener("click", () => {
+      const doneTasks = state.tasks.filter(t => t.done);
+      if (!doneTasks.length) { toast("没有已完成项"); return; }
+      doneTasks.forEach(t => {
+        logEvent("task_archived", {
+          taskId: t.id, taskText: t.text, quadrant: t.quadrant,
+          completedAt: t.completedAt, note: "cleared_from_board"
+        });
+      });
+      state.tasks = state.tasks.filter(t => !t.done);
+      save();
+      render();
+      toast(`已归档 ${doneTasks.length} 项已完成（日志中可分析）`);
+    });
+
+    document.getElementById("reset-all").addEventListener("click", () => {
+      if (!state.tasks.length || confirm("确定清空全部任务？建议先导出备份。操作会记入日志。")) {
+        logEvent("board_reset", { count: state.tasks.length });
+        state.tasks = [];
+        save();
+        render();
+        toast("已清空");
+      }
+    });
+
+    document.getElementById("btn-snapshot").addEventListener("click", () => {
+      takeSnapshot("manual");
+      toast("快照已保存");
+    });
+
+    document.getElementById("btn-export-json").addEventListener("click", () => {
+      downloadFile(`priority-full-${fileStamp()}.json`, JSON.stringify(exportPayload(), null, 2), "application/json");
+      logEvent("export", { format: "json" });
+      toast("JSON 已下载");
+    });
+
+    document.getElementById("btn-export-csv-tasks").addEventListener("click", () => {
+      downloadFile(`priority-tasks-${fileStamp()}.csv`, tasksToCsv(), "text/csv;charset=utf-8");
+      logEvent("export", { format: "csv_tasks" });
+      toast("任务 CSV 已下载");
+    });
+
+    document.getElementById("btn-export-csv-events").addEventListener("click", () => {
+      downloadFile(`priority-events-${fileStamp()}.csv`, eventsToCsv(), "text/csv;charset=utf-8");
+      logEvent("export", { format: "csv_events" });
+      toast("操作日志 CSV 已下载");
+    });
+
+    document.getElementById("btn-export-all").addEventListener("click", () => {
+      const stamp = fileStamp();
+      downloadFile(`priority-full-${stamp}.json`, JSON.stringify(exportPayload(), null, 2), "application/json");
+      setTimeout(() => downloadFile(`priority-tasks-${stamp}.csv`, tasksToCsv(), "text/csv;charset=utf-8"), 300);
+      setTimeout(() => downloadFile(`priority-events-${stamp}.csv`, eventsToCsv(), "text/csv;charset=utf-8"), 600);
+      logEvent("export", { format: "analysis_pack" });
+      toast("分析包 3 个文件已下载");
+    });
+
+    document.getElementById("auto-daily").addEventListener("change", e => {
+      meta.autoDaily = e.target.checked;
+      saveMeta();
+    });
+
+    document.getElementById("import-file").addEventListener("change", async e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const merge = document.getElementById("import-merge").checked;
+        const incomingTasks = Array.isArray(data) ? data : (data.tasks ?? null);
+        const incomingEvents = data.events || [];
+        const incomingSnapshots = data.snapshots || (data.summary && data.tasks ? [data] : []);
+
+        if (incomingTasks && Array.isArray(incomingTasks)) {
+          if (merge) {
+            const ids = new Set(state.tasks.map(t => t.id));
+            incomingTasks.forEach(t => { if (!ids.has(t.id)) state.tasks.push(t); });
+          } else if (confirm("覆盖当前任务列表？日志与快照将合并导入。")) {
+            state.tasks = incomingTasks;
+          } else {
+            e.target.value = "";
+            return;
+          }
+          saveTasks();
+        }
+
+        if (merge || incomingEvents.length) {
+          const ids = new Set(events.map(x => x.id));
+          incomingEvents.forEach(ev => { if (!ids.has(ev.id)) events.push(ev); });
+          events.sort((a, b) => a.at - b.at);
+          saveEvents();
+        }
+
+        if (incomingSnapshots.length) {
+          const ids = new Set(snapshots.map(s => s.id));
+          const toAdd = Array.isArray(incomingSnapshots) ? incomingSnapshots : [incomingSnapshots];
+          toAdd.forEach(s => {
+            if (s && s.id && !ids.has(s.id)) snapshots.unshift(s);
+          });
+          saveSnapshots();
+        }
+
+        logEvent("import", { file: file.name, merge });
+        render();
+        toast("导入成功");
+      } catch (err) {
+        toast("导入失败：" + err.message);
+      }
+      e.target.value = "";
+    });
+
+    setupToggles("important-toggle", "important");
+    setupToggles("urgent-toggle", "urgent");
+    setupDropZones();
+    load();
+    hydrateFromDisk().then(restored => {
+      render();
+      renderDataPanel();
+      maybeDailySnapshot();
+      if (restored) toast("已从本机 data/storage.json 恢复数据");
+    });
+  </script>
+</body>
+</html>

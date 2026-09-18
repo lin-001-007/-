@@ -1,0 +1,14 @@
+# 运行时自动生成，包含本机路径与安装时间，不应上传
+.installed.json
+
+# 本地服务进程 PID 文件（运行时生成）
+.server.pid
+
+# 用户任务数据（使用记录 / 隐私数据），切勿上传
+data/storage.json
+
+# 备份与导出文件
+*.bak
+*.backup
+data/*.bak
+data/*.backup
